@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 
 	time "time"
@@ -13,9 +15,9 @@ type UrlRepo struct {
 	mock.Mock
 }
 
-// GetUrl provides a mock function with given fields: alias
-func (_m *UrlRepo) GetUrl(alias string) (string, error) {
-	ret := _m.Called(alias)
+// GetUrl provides a mock function with given fields: ctx, alias
+func (_m *UrlRepo) GetUrl(ctx context.Context, alias string) (string, error) {
+	ret := _m.Called(ctx, alias)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUrl")
@@ -23,17 +25,17 @@ func (_m *UrlRepo) GetUrl(alias string) (string, error) {
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
-		return rf(alias)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, alias)
 	}
-	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(alias)
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, alias)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(alias)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, alias)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -41,9 +43,9 @@ func (_m *UrlRepo) GetUrl(alias string) (string, error) {
 	return r0, r1
 }
 
-// SaveUrl provides a mock function with given fields: alias, url, validUntil
-func (_m *UrlRepo) SaveUrl(alias string, url string, validUntil time.Time) (int64, error) {
-	ret := _m.Called(alias, url, validUntil)
+// SaveUrl provides a mock function with given fields: ctx, alias, url, validUntil
+func (_m *UrlRepo) SaveUrl(ctx context.Context, alias string, url string, validUntil time.Time) (int64, error) {
+	ret := _m.Called(ctx, alias, url, validUntil)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveUrl")
@@ -51,17 +53,17 @@ func (_m *UrlRepo) SaveUrl(alias string, url string, validUntil time.Time) (int6
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, time.Time) (int64, error)); ok {
-		return rf(alias, url, validUntil)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time) (int64, error)); ok {
+		return rf(ctx, alias, url, validUntil)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, time.Time) int64); ok {
-		r0 = rf(alias, url, validUntil)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time) int64); ok {
+		r0 = rf(ctx, alias, url, validUntil)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, time.Time) error); ok {
-		r1 = rf(alias, url, validUntil)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, time.Time) error); ok {
+		r1 = rf(ctx, alias, url, validUntil)
 	} else {
 		r1 = ret.Error(1)
 	}

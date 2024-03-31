@@ -15,9 +15,9 @@ const (
 )
 
 type Config struct {
-	Env         string `yaml:"env" env-default:"local"`
-	StoragePath string `yaml:"storage_path" env-required:"true"`
-	HttpServer  `yaml:"http_server"`
+	Env               string `yaml:"env" env-default:"local"`
+	StorageConnString string `yaml:"storage_conn_string" env-required:"true"`
+	HttpServer        `yaml:"http_server"`
 }
 
 type HttpServer struct {

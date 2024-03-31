@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  url-shortener-web:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    volumes:
+      - .:/code
+    depends_on:
+      - url-shortener-db-pgs
+
+  url-shortener-db-pgs:
+    hostname: postgres
+    image: postgres:alpine
+    ports:
+      - "5423:5432"
+    environment:
+      POSTGRES_DB: url_shortener
+      POSTGRES_USER: scilightener
+      POSTGRES_PASSWORD: superd8p3rrrtr0ngpassw0rd

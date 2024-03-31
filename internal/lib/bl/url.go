@@ -1,6 +1,7 @@
 package bl
 
 import (
+	"context"
 	"math/rand"
 	"time"
 )
@@ -11,13 +12,13 @@ const (
 )
 
 type UrlChecker interface {
-	GetUrl(alias string) (string, error)
+	GetUrl(ctx context.Context, alias string) (string, error)
 }
 
-func GenerateUniqueAlias(checker UrlChecker) string {
+func GenerateUniqueAlias(ctx context.Context, checker UrlChecker) string {
 	alias := getRandomString(aliasLength)
 	for {
-		_, err := checker.GetUrl(alias)
+		_, err := checker.GetUrl(ctx, alias)
 		if err != nil {
 			break
 		}

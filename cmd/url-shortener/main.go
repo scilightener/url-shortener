@@ -16,7 +16,7 @@ import (
 	"url-shortener/internal/http-server/middleware"
 	"url-shortener/internal/lib/consts"
 	"url-shortener/internal/lib/logger/sl"
-	"url-shortener/internal/storage/sqllite"
+	"url-shortener/internal/storage/pgs"
 )
 
 func main() {
@@ -25,25 +25,20 @@ func main() {
 
 	logger.Info("starting application", slog.String("env", cfg.Env))
 
-	storage, err := sqllite.New(cfg.StoragePath)
+	storage, err := pgs.New(cfg.StorageConnString)
 	if err != nil {
 		logger.Error("failed to initialize storage", sl.Err(err))
 		os.Exit(1)
 	}
-	defer func(storage *sqllite.Storage) {
-		err := storage.Close()
-		if err != nil {
-			logger.Error("failed to close storage", sl.Err(err))
-		}
-	}(storage)
 
-	logger.Info("storage initialized", slog.String("storage", "sqllite"))
+	logger.Info("storage initialized", slog.String("storage", "postgres"))
 
 	router := http.NewServeMux()
 	router.HandleFunc("POST /api/url", save.New(logger, storage))
 	router.HandleFunc(fmt.Sprintf("GET /{%s}", consts.AliasKey), redirect.New(logger, storage))
 
 	mw := middleware.Chain(
+		middleware.CorsMiddleware,
 		middleware.RequestIDMiddleware,
 		middleware.NewLoggingMiddleware(logger),
 		middleware.RecovererMiddleware,
@@ -62,7 +57,7 @@ func main() {
 }
 
 func initLogger(env string) *slog.Logger {
-	var logger *slog.Logger
+	logger := new(slog.Logger)
 
 	switch env {
 	case config.LocalEnv:

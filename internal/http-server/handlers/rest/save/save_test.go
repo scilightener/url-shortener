@@ -2,6 +2,7 @@ package save_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
@@ -63,9 +64,10 @@ func TestSaveHandler(t *testing.T) {
 
 func arrange(t *testing.T, tc *testStruct) (handler http.HandlerFunc, rr *httptest.ResponseRecorder, req *http.Request) {
 	t.Parallel()
+	var mockContext = mock.MatchedBy(func(c context.Context) bool { return true })
 	urlSaverMock := mocks.NewUrlRepo(t)
 	if tc.respError == "" || tc.mockError != nil {
-		urlSaverMock.On("SaveUrl", mock.AnythingOfType("string"), tc.url, mock.AnythingOfType("time.Time")).
+		urlSaverMock.On("SaveUrl", mockContext, mock.AnythingOfType("string"), tc.url, mock.AnythingOfType("time.Time")).
 			Return(int64(1), tc.mockError).
 			Once()
 	}

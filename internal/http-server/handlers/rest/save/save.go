@@ -1,6 +1,7 @@
 package save
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/go-playground/validator/v10"
@@ -29,8 +30,8 @@ type Response struct {
 
 //go:generate go run github.com/vektra/mockery/v2@v2.42.1 --name=UrlRepo
 type UrlRepo interface {
-	SaveUrl(alias, url string, validUntil time.Time) (int64, error)
-	GetUrl(alias string) (string, error)
+	SaveUrl(ctx context.Context, alias, url string, validUntil time.Time) (int64, error)
+	GetUrl(ctx context.Context, alias string) (string, error)
 }
 
 func New(log *slog.Logger, urlRepo UrlRepo) http.HandlerFunc {
@@ -67,12 +68,12 @@ func New(log *slog.Logger, urlRepo UrlRepo) http.HandlerFunc {
 
 		alias := request.Alias
 		if len(alias) == 0 {
-			alias = bl.GenerateUniqueAlias(urlRepo)
+			alias = bl.GenerateUniqueAlias(r.Context(), urlRepo)
 		}
 
 		validUntilUTC := bl.GetValidUntilUTC()
 
-		id, err := urlRepo.SaveUrl(alias, request.Url, validUntilUTC)
+		id, err := urlRepo.SaveUrl(r.Context(), alias, request.Url, validUntilUTC)
 		if err != nil {
 			log.Error(consts.LogErrFailSaveUrl, sl.Err(err))
 			if errors.Is(err, storage.ResourceAlreadyExists) {
