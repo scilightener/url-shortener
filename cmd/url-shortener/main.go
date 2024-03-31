@@ -12,6 +12,7 @@ import (
 	"url-shortener/internal/config"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/middleware"
+	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/sqllite"
 )
 
@@ -23,13 +24,13 @@ func main() {
 
 	storage, err := sqllite.New(cfg.StoragePath)
 	if err != nil {
-		logger.Error("failed to initialize storage", slog.String("error", err.Error()))
+		logger.Error("failed to initialize storage", sl.Err(err))
 		os.Exit(1)
 	}
 	defer func(storage *sqllite.Storage) {
 		err := storage.Close()
 		if err != nil {
-			logger.Error("failed to close storage", slog.String("error", err.Error()))
+			logger.Error("failed to close storage", sl.Err(err))
 		}
 	}(storage)
 
@@ -45,7 +46,7 @@ func main() {
 		middleware.ContentTypeJsonMiddleware,
 	)
 
-	server := http.Server{
+	server := &http.Server{
 		Addr:         cfg.HttpServer.Address,
 		Handler:      mw(router),
 		WriteTimeout: cfg.HttpServer.Timeout,
@@ -53,25 +54,7 @@ func main() {
 		ReadTimeout:  cfg.HttpServer.Timeout,
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	go func() {
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("listen and serve returned err: %v", err)
-			os.Exit(1)
-		}
-	}()
-
-	<-ctx.Done()
-	logger.Info("gracefully shutting down")
-	c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := server.Shutdown(c); err != nil {
-		logger.Error("server shutdown returned an err: %v\n", err)
-	}
-
-	logger.Info("server stopped")
+	startServer(server, logger)
 }
 
 func initLogger(env string) *slog.Logger {
@@ -87,4 +70,30 @@ func initLogger(env string) *slog.Logger {
 	}
 
 	return logger
+}
+
+func startServer(server *http.Server, logger *slog.Logger) {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("listen and serve returned err", sl.Err(err))
+			os.Exit(1)
+		}
+	}()
+
+	<-ctx.Done()
+	shutdownGracefully(server, logger)
+}
+
+func shutdownGracefully(server *http.Server, logger *slog.Logger) {
+	logger.Info("gracefully shutting down")
+	c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := server.Shutdown(c); err != nil {
+		logger.Error("server shutdown returned an err: %v\n", err)
+	}
+
+	logger.Info("server stopped")
 }
