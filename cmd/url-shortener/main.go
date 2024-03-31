@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 	"url-shortener/internal/config"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/middleware"
@@ -21,6 +26,12 @@ func main() {
 		logger.Error("failed to initialize storage", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+	defer func(storage *sqllite.Storage) {
+		err := storage.Close()
+		if err != nil {
+			logger.Error("failed to close storage", slog.String("error", err.Error()))
+		}
+	}(storage)
 
 	logger.Info("storage initialized", slog.String("storage", "sqllite"))
 
@@ -31,6 +42,7 @@ func main() {
 		middleware.RequestIDMiddleware,
 		middleware.NewLoggingMiddleware(logger),
 		middleware.RecovererMiddleware,
+		middleware.ContentTypeJsonMiddleware,
 	)
 
 	server := http.Server{
@@ -40,11 +52,25 @@ func main() {
 		IdleTimeout:  cfg.HttpServer.IdleTimeout,
 		ReadTimeout:  cfg.HttpServer.Timeout,
 	}
-	err = server.ListenAndServe()
-	if err != nil {
-		logger.Error("server error", slog.String("error", err.Error()))
-		os.Exit(1)
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("listen and serve returned err: %v", err)
+			os.Exit(1)
+		}
+	}()
+
+	<-ctx.Done()
+	logger.Info("gracefully shutting down")
+	c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := server.Shutdown(c); err != nil {
+		logger.Error("server shutdown returned an err: %v\n", err)
 	}
+
 	logger.Info("server stopped")
 }
 

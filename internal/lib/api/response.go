@@ -7,8 +7,8 @@ import (
 )
 
 type Response struct {
-	Status string `jsn:"status"`
-	Error  string `jsn:"error,omitempty"`
+	Status string `json:"status"`
+	Error  string `json:"error,omitempty"`
 }
 
 const (

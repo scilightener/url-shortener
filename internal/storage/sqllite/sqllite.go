@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 	"url-shortener/internal/storage"
 
 	"github.com/mattn/go-sqlite3"
@@ -51,18 +52,18 @@ func (s *Storage) Close() error {
 	return nil
 }
 
-func (s *Storage) SaveUrl(alias, url string, validUntil int64) (int64, error) {
-	const eo = "storage.sqlLite.Create"
+func (s *Storage) SaveUrl(alias, url string, validUntilUTC time.Time) (int64, error) {
+	const eo = "storage.sqlLite.SaveUrl"
 
 	query, err := s.db.Prepare("INSERT INTO urls (alias, valid_until, url) VALUES (?, ?, ?)")
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", eo, err)
 	}
 
-	res, err := query.Exec(alias, validUntil, url)
+	res, err := query.Exec(alias, validUntilUTC, url)
 	if err != nil {
 		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) && sqliteErr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &sqliteErr) && errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
 			return 0, fmt.Errorf("%s: %w", eo, storage.ResourceAlreadyExists)
 		}
 
@@ -78,7 +79,7 @@ func (s *Storage) SaveUrl(alias, url string, validUntil int64) (int64, error) {
 }
 
 func (s *Storage) GetUrl(alias string) (string, error) {
-	const eo = "storage.sqlLite.Get"
+	const eo = "storage.sqlLite.GetUrl"
 
 	query, err := s.db.Prepare("SELECT url FROM urls WHERE alias = ? AND valid_until > ?")
 	if err != nil {
@@ -99,7 +100,7 @@ func (s *Storage) GetUrl(alias string) (string, error) {
 }
 
 func (s *Storage) GetUrlById(id int64) (string, error) {
-	const eo = "storage.sqlLite.Get"
+	const eo = "storage.sqlLite.GetUrlById"
 
 	query, err := s.db.Prepare("SELECT url FROM urls WHERE id = ? AND valid_until > ?")
 	if err != nil {
@@ -120,7 +121,7 @@ func (s *Storage) GetUrlById(id int64) (string, error) {
 }
 
 func (s *Storage) DeleteUrl(alias string) error {
-	const eo = "storage.sqlLite.Delete"
+	const eo = "storage.sqlLite.DeleteUrl"
 
 	query, err := s.db.Prepare("DELETE FROM urls WHERE alias = ?")
 	if err != nil {
