@@ -1,10 +1,6 @@
 package consts
 
 const (
-	EmptyString = ""
-
-	RequestIdKey = "request_id"
-
 	LogErr                 = "error"
 	LogErrDecodingRequest  = "failed to decode request"
 	LogErrEncodingResponse = "failed to encode response"
@@ -13,12 +9,10 @@ const (
 	LogErrValidation = "validation failed"
 
 	LogErrFailSaveUrl = "failed to save url"
+	LogErrFailGetUrl  = "failed to get url"
 
-	LogInfoUrlSaved = "url saved"
-
-	ApiUnknownErr       = "unknown error"
-	ApiInternalErr      = "internal error"
-	ApiInvalidRequest   = "invalid request"
-	ApiUrlNotFound      = "url not found"
-	ApiUrlAlreadyExists = "url already exists"
+	LogInfoAliasEmpty  = "alias is empty"
+	LogInfoUrlSaved    = "url saved"
+	LogInfoUrlNotFound = "url not found"
+	LogInfoGotUrl      = "got url"
 )

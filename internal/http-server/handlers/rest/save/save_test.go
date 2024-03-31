@@ -11,8 +11,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	"url-shortener/internal/http-server/handlers/url/save"
-	"url-shortener/internal/http-server/handlers/url/save/mocks"
+	"url-shortener/internal/http-server/handlers/rest/save"
+	"url-shortener/internal/http-server/handlers/rest/save/mocks"
 	"url-shortener/internal/lib/bl"
 	slogdiscard "url-shortener/internal/lib/logger/slogimpl"
 )
@@ -28,6 +28,7 @@ type testStruct struct {
 	mockError      error
 }
 
+// TODO: add more tests
 func TestSaveHandler(t *testing.T) {
 	cases := []*testStruct{
 		{

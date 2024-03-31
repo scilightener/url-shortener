@@ -33,13 +33,8 @@ type UrlRepo interface {
 	GetUrl(alias string) (string, error)
 }
 
-const (
-	aliasKey = "alias"
-	idKey    = "id"
-)
-
 func New(log *slog.Logger, urlRepo UrlRepo) http.HandlerFunc {
-	const eo = "handlers.url.save.New"
+	const eo = "handlers.rest.save.New"
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := log.With(
@@ -77,7 +72,7 @@ func New(log *slog.Logger, urlRepo UrlRepo) http.HandlerFunc {
 
 		validUntilUTC := bl.GetValidUntilUTC()
 
-		id, err := urlRepo.SaveUrl(request.Alias, request.Url, validUntilUTC)
+		id, err := urlRepo.SaveUrl(alias, request.Url, validUntilUTC)
 		if err != nil {
 			log.Error(consts.LogErrFailSaveUrl, sl.Err(err))
 			if errors.Is(err, storage.ResourceAlreadyExists) {
@@ -90,7 +85,7 @@ func New(log *slog.Logger, urlRepo UrlRepo) http.HandlerFunc {
 			return
 		}
 
-		log.Info(consts.LogInfoUrlSaved, slog.String(aliasKey, alias), slog.Int64(idKey, id))
+		log.Info(consts.LogInfoUrlSaved, slog.String(consts.AliasKey, alias), slog.Int64(consts.IdKey, id))
 
 		jsn.EncodeResponse(w, http.StatusCreated,
 			&Response{api.OkResponse(), alias, validUntilUTC}, log)

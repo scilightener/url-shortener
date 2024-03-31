@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,8 +11,10 @@ import (
 	"syscall"
 	"time"
 	"url-shortener/internal/config"
-	"url-shortener/internal/http-server/handlers/url/save"
+	"url-shortener/internal/http-server/handlers/rest/redirect"
+	"url-shortener/internal/http-server/handlers/rest/save"
 	"url-shortener/internal/http-server/middleware"
+	"url-shortener/internal/lib/consts"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/sqllite"
 )
@@ -38,6 +41,7 @@ func main() {
 
 	router := http.NewServeMux()
 	router.HandleFunc("POST /api/url", save.New(logger, storage))
+	router.HandleFunc(fmt.Sprintf("GET /{%s}", consts.AliasKey), redirect.New(logger, storage))
 
 	mw := middleware.Chain(
 		middleware.RequestIDMiddleware,
