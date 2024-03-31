@@ -1,0 +1,31 @@
+name: Deploy to remote
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HOST: root@5.42.100.122
+      DEPLOY_DIRECTORY: /root/apps/url-shortener
+      CONFIG_PATH: /root/apps/url-shortener/config/prod.yaml
+      ENV_FILE_PATH: /root/apps/url-shortener/config.env
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Deploy to remote server
+        run: |
+          sudo apt-get install -y ssh rsync
+          echo "$DEPLOY_SSH_KEY" > deploy_key.pem
+          chmod 600 deploy_key.pem
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "mkdir -p ${{ env.DEPLOY_DIRECTORY }}"
+          rsync -avz -e 'ssh -i deploy_key.pem -o StrictHostKeyChecking=no' --exclude='.git' ./ ${{ env.HOST }}:${{ env.DEPLOY_DIRECTORY }}
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      - name: Start application
+        run: |
+          ssh -p 21313 -i deploy_key.pem -o StrictHostKeyChecking=no ${{ env.HOST }} "cd ${{ env.DEPLOY_DIRECTORY }} && docker-compose up -d"
