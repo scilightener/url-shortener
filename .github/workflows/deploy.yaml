@@ -17,8 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Deploy with rsync
-        run: ssh-keyscan -p ${{ secrets.REMOTE_SSH_PORT }} -H 5.42.100.122 >> ~/.ssh/known_hosts
+      - name: Configure ssh
+        run: mkdir -p ~/.ssh && touch ~/.ssh/known_hosts && ssh-keyscan -p ${{ secrets.REMOTE_SSH_PORT }} -H 5.42.100.122 >> ~/.ssh/known_hosts
       - name: Deploy to remote server
         run: |
           sudo apt-get install -y ssh rsync
