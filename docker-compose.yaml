@@ -15,9 +15,7 @@ services:
   url-shortener-db-pgs:
     hostname: postgres
     image: postgres:alpine
-    ports:
-      - "5423:5432"
     environment:
       POSTGRES_DB: url_shortener
       POSTGRES_USER: scilightener
-      POSTGRES_PASSWORD: superd8p3rrrtr0ngpassw0rd
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
