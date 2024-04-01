@@ -1,5 +1,5 @@
 env: "prod"
-storage_conn_string: "postgres://scilightener:superd8p3rrrtr0ngpassw0rd@postgres:5432/url_shortener?sslmode=disable"
+storage_conn_string: "postgres://scilightener:${POSTGRES_PASS}@postgres:5432/url_shortener?sslmode=disable"
 http_server:
   address: "0.0.0.0:8083"
   timeout: 5s

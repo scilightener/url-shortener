@@ -41,6 +41,8 @@ func MustLoad() *Config {
 		log.Fatalf("failed to read config: %s", err)
 	}
 
+	cfg.StorageConnString = os.ExpandEnv(cfg.StorageConnString)
+
 	return &cfg
 }
 
